@@ -106,8 +106,54 @@ async function tryHtmlFallback(url) {
   };
 }
 
+// Trendyol sayfaları JavaScript ile render edildiği için normal HTML
+// çekimi işe yaramıyor. Ama Trendyol'un kendi sitesinin arkaplanda
+// kullandığı, herkese açık (login gerektirmeyen) ürün veri servisi var;
+// URL içindeki "-p-12345" kalıbından ürün ID'sini çıkarıp doğrudan onu
+// sorguluyoruz. Bu servis resmi/belgeli değildir, Trendyol değiştirirse
+// çalışmayı bırakabilir — o durumda otomatik olarak normal akışa döner.
+async function tryTrendyolPublicApi(url) {
+  const hostname = new URL(url).hostname;
+  if (!hostname.includes("trendyol.com")) return null;
+
+  const match = url.match(/-p-(\d+)/);
+  if (!match) return null;
+  const productId = match[1];
+
+  const apiUrl = `https://public.trendyol.com/discovery-web-productgw-service/api/productDetail/${productId}`;
+  const { data } = await axios.get(apiUrl, {
+    headers: { "user-agent": USER_AGENT, accept: "application/json" },
+    timeout: 8000,
+  });
+
+  const result = data?.result;
+  if (!result || !result.name) return null;
+
+  const priceText =
+    result.price?.discountedPrice?.text || result.price?.sellingPrice?.text || null;
+  const priceValue = priceText
+    ? parseFloat(priceText.replace(/[^\d,]/g, "").replace(",", "."))
+    : null;
+
+  const firstImage = Array.isArray(result.images) ? result.images[0] : null;
+
+  return {
+    name: result.name,
+    photoUrl: firstImage ? `https://cdn.dsmcdn.com/${firstImage}` : null,
+    price: Number.isFinite(priceValue) ? priceValue : null,
+    brand: result.brand?.name || result.merchant?.name || null,
+  };
+}
+
 async function scrapeProductFromUrl(url) {
   new URL(url);
+
+  try {
+    const trendyolData = await tryTrendyolPublicApi(url);
+    if (trendyolData) return { ...trendyolData, sourceLink: url };
+  } catch {
+    // Trendyol'un servisi değişmiş/erişilemez olabilir, normal akışa devam et
+  }
 
   let ogData = null;
   try {
