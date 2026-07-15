@@ -5,7 +5,7 @@ import { formatCurrency, getStatusConfig } from "../utils/format";
  * Tek bir ürünü temsil eden kart. Durumu "Alındı" yapmak/geri almak
  * için sağ üstte şık bir toggle butonu bulunur.
  */
-export default function ItemCard({ item, onToggleStatus, onDelete }) {
+export default function ItemCard({ item, onToggleStatus, onDelete, onEdit }) {
   const status = getStatusConfig(item.status);
   const isPurchased = item.status === "purchased";
 
@@ -42,14 +42,23 @@ export default function ItemCard({ item, onToggleStatus, onDelete }) {
           {status.label}
         </span>
 
-        {/* Silme butonu - hover'da belirir */}
-        <button
-          onClick={() => onDelete(item.id)}
-          className="absolute top-2.5 right-2.5 h-7 w-7 rounded-full bg-white/90 text-clay-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center hover:text-dusty-500"
-          aria-label="Ürünü sil"
-        >
-          ✕
-        </button>
+        {/* Düzenle / silme butonları - hover'da belirir */}
+        <div className="absolute top-2.5 right-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <button
+            onClick={() => onEdit(item)}
+            className="h-7 w-7 rounded-full bg-white/90 text-clay-400 flex items-center justify-center hover:text-sage-600"
+            aria-label="Ürünü düzenle"
+          >
+            ✎
+          </button>
+          <button
+            onClick={() => onDelete(item.id)}
+            className="h-7 w-7 rounded-full bg-white/90 text-clay-400 flex items-center justify-center hover:text-dusty-500"
+            aria-label="Ürünü sil"
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       {/* İçerik */}
