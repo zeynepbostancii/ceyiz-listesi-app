@@ -1,0 +1,38 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream-100 text-clay-600 font-sans antialiased;
+  }
+
+  /* İnce, soft scrollbar - yatay kategori navigasyonu için */
+  ::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: theme("colors.sage.200");
+    border-radius: 999px;
+  }
+
+  /* Klavye erişilebilirliği için görünür odak halkası */
+  :focus-visible {
+    outline: 2px solid theme("colors.sage.400");
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .input-field {
+    @apply w-full rounded-xl border border-cream-300 bg-cream-50 px-3.5 py-2.5 text-sm text-clay-600
+      placeholder:text-clay-300 focus:border-sage-400 focus:ring-1 focus:ring-sage-400 outline-none
+      transition-colors duration-150;
+  }
+}
