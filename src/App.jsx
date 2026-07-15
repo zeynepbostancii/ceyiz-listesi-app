@@ -3,6 +3,7 @@ import Dashboard from "./components/Dashboard";
 import CategoryNav from "./components/CategoryNav";
 import ItemGrid from "./components/ItemGrid";
 import AddItemPanel from "./components/AddItemPanel";
+import EditItemModal from "./components/EditItemModal";
 import {
   fetchCategories,
   fetchItems,
@@ -20,6 +21,7 @@ export default function App() {
   const [loadingShell, setLoadingShell] = useState(true); // kategori + dashboard ilk yükleme
   const [loadingItems, setLoadingItems] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
 
   const loadShell = useCallback(async () => {
     setLoadingShell(true);
@@ -106,6 +108,18 @@ export default function App() {
     }
   }
 
+  function handleItemSaved(updated) {
+    // Kategori değiştiyse ve artık aktif filtreye uymuyorsa listeden çıkar,
+    // uyuyorsa güncellenmiş haliyle listede tut.
+    setItems((prev) => {
+      const stillVisible = !activeCategoryId || updated.categoryId === activeCategoryId;
+      if (!stillVisible) return prev.filter((it) => it.id !== updated.id);
+      return prev.map((it) => (it.id === updated.id ? updated : it));
+    });
+    setEditingItem(null);
+    refreshSummary();
+  }
+
   return (
     <div className="min-h-screen bg-cream-100">
       <header className="border-b border-cream-200 bg-cream-50/80 backdrop-blur-sm sticky top-0 z-20">
@@ -153,8 +167,18 @@ export default function App() {
           loading={loadingItems}
           onToggleStatus={handleToggleStatus}
           onDelete={handleDeleteItem}
+          onEdit={setEditingItem}
         />
       </main>
+
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          categories={categories}
+          onClose={() => setEditingItem(null)}
+          onSaved={handleItemSaved}
+        />
+      )}
     </div>
   );
 }
